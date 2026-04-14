@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#09090b">
+  <meta name="color-scheme" content="dark">
+  <title>{% block title %}Spotify top{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+</head>
+<body>
+  <div class="bg-glow" aria-hidden="true"></div>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="{{ url_for('index') }}" class="brand">
+        <span class="brand-icon" aria-hidden="true">♪</span>
+        <div>
+          <h1>{% block site_title %}Spotify dashboard{% endblock %}</h1>
+          <p class="tagline">{% block tagline %}Top from the database and recent plays{% endblock %}</p>
+        </div>
+      </a>
+      <nav class="nav-pills" aria-label="Sections">
+        <a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %}">Top</a>
+        <a href="{{ url_for('listening') }}" class="{% if request.endpoint == 'listening' %}active{% endif %}">Listening</a>
+        <a href="{{ url_for('listening_archive') }}" class="{% if request.endpoint in ('listening_archive', 'listening_day_archive') %}active{% endif %}">Archive</a>
+      </nav>
+    </div>
+  </header>
+  <main class="wrap">
+    {% block body %}{% endblock %}
+  </main>
+  <footer class="site-footer">
+    <span>Top: PostgreSQL · Listening: Spotify API (token in <code>.cache</code>)</span>
+  </footer>
+</body>
+</html>

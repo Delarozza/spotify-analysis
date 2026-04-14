@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}{{ day_label }} — archive{% endblock %}
+
+{% block body %}
+<section class="period-bar card">
+  <p class="window-meta">
+    <span class="meta-badge">Saved</span>
+    <span class="window-sep" aria-hidden="true">·</span>
+    <span class="window-range">{{ day_label }} · captured {{ captured_label }} (local)</span>
+  </p>
+  <p class="hint subtle"><a href="{{ url_for('listening_archive') }}">← Archive</a> · this is a frozen snapshot from the database, not live Spotify.</p>
+</section>
+
+{% if error %}
+<section class="card card-error">
+  <h2>Error</h2>
+  <p>{{ error }}</p>
+</section>
+{% elif empty %}
+<section class="card card-empty">
+  <h2>Nothing stored for this day</h2>
+  <p>No snapshot row for this date (or it was saved with zero plays).</p>
+</section>
+{% else %}
+<section class="stats-row">
+  <div class="stat-pill"><strong>{{ total_plays }}</strong> plays</div>
+  <div class="stat-pill"><strong>{{ unique_tracks }}</strong> unique tracks</div>
+</section>
+
+<div class="listening-stack">
+  <section class="card">
+    <h2>Tracks</h2>
+    <p class="hint subtle sort-caption">{{ sort_caption }} · click a column to sort</p>
+    <div class="table-wrap table-wrap--fit">
+      <table class="data-table data-table--listening">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th class="th-sortable{% if sort == 'track' %} th-sortable--active th-sortable--{{ sort_dir }}{% endif %}">
+              <a href="{{ sort_urls['track'] }}" class="th-sort-link">Track</a>
+            </th>
+            <th class="th-sortable{% if sort == 'artist' %} th-sortable--active th-sortable--{{ sort_dir }}{% endif %}">
+              <a href="{{ sort_urls['artist'] }}" class="th-sort-link">Artist</a>
+            </th>
+            <th class="th-sortable th-num{% if sort == 'plays' %} th-sortable--active th-sortable--{{ sort_dir }}{% endif %}">
+              <a href="{{ sort_urls['plays'] }}" class="th-sort-link">Plays</a>
+            </th>
+            <th class="th-sortable{% if sort == 'last' %} th-sortable--active th-sortable--{{ sort_dir }}{% endif %}">
+              <a href="{{ sort_urls['last'] }}" class="th-sort-link">Last</a>
+            </th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in ranked %}
+          <tr>
+            <td class="num">{{ loop.index }}</td>
+            <td class="ellipsis">{{ row.name }}</td>
+            <td class="ellipsis muted">{{ row.artist }}</td>
+            <td class="num">{{ row.plays }}</td>
+            <td class="nowrap">{{ row.last_played }}</td>
+            <td><a class="spotify-link" href="https://open.spotify.com/track/{{ row.track_id }}" target="_blank" rel="noopener">↗</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card chart-card">
+    <h2>Artists by plays</h2>
+    <div class="chart-wrap">
+      <canvas id="listenArchiveChart" width="400" height="280"></canvas>
+    </div>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  const labels = {{ artist_labels | tojson }};
+  const values = {{ artist_values | tojson }};
+  const root = getComputedStyle(document.documentElement);
+  const accent = root.getPropertyValue('--accent').trim() || '#1ed760';
+  const muted = root.getPropertyValue('--muted').trim() || '#a7a7a7';
+
+  if (labels.length) {
+    new Chart(document.getElementById('listenArchiveChart'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Plays',
+          data: values,
+          backgroundColor: accent + 'cc',
+          borderColor: accent,
+          borderWidth: 1,
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 700, easing: 'easeOutCubic' },
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            beginAtZero: true,
+            ticks: { stepSize: 1, color: muted, font: { size: 11 } },
+            grid: { color: 'rgba(255,255,255,.05)', drawTicks: false },
+            border: { display: false },
+          },
+          y: {
+            ticks: { color: muted, font: { size: 11 } },
+            grid: { display: false },
+            border: { display: false },
+          },
+        },
+      },
+    });
+  }
+</script>
+{% endif %}
+{% endblock %}

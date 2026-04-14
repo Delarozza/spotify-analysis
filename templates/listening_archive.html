@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Listening archive — Spotify{% endblock %}
+
+{% block body %}
+<section class="period-bar card">
+  <p class="archive-page-title">Listening archive</p>
+  <p class="hint subtle">Saved daily snapshots (scheduler or CLI). Live “today” is still on Listening.</p>
+</section>
+
+{% if error %}
+<section class="card card-error">
+  <h2>Error</h2>
+  <p>{{ error }}</p>
+</section>
+{% elif not days %}
+<section class="card card-empty">
+  <h2>No saved days yet</h2>
+  <p>With <code>LISTENING_SNAPSHOT_TZ</code> and <code>webapp.py</code> running, a snapshot of <strong>yesterday</strong> is saved each day (default <code>00:05</code>). Or run <code>python spotify.py --snapshot-day YYYY-MM-DD</code>.</p>
+</section>
+{% else %}
+<section class="card">
+  <h2>Saved dates</h2>
+  <ul class="archive-day-list">
+    {% for d in days %}
+    <li>
+      <a href="{{ url_for('listening_day_archive', date_str=d.isoformat()) }}" class="archive-day-link">
+        <span class="archive-day-label">{{ d.strftime('%Y-%m-%d') }}</span>
+        <span class="archive-day-arrow" aria-hidden="true">→</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endblock %}

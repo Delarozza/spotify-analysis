@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block body %}
+{% if error %}
+<section class="card card-error">
+  <h2>Error</h2>
+  <p>{{ error }}</p>
+</section>
+{% elif empty is defined and empty %}
+<section class="card card-empty">
+  <h2>Nothing here yet</h2>
+  <p>Run a sync: <code>python spotify.py</code>, then refresh this page.</p>
+</section>
+{% else %}
+<div class="top-page">
+    <div class="grid-two">
+      <section class="card">
+        <h2>Tracks</h2>
+        <ol class="track-list">
+          {% for t in tracks %}
+          <li>
+            <span class="rank">{{ t.rank }}</span>
+            <div class="track-info">
+              <span class="track-name">{{ t.track_name }}</span>
+              <span class="track-artist">{{ t.artist_name }}</span>
+            </div>
+            <a class="spotify-link" href="https://open.spotify.com/track/{{ t.spotify_track_id }}" target="_blank" rel="noopener">Spotify ↗</a>
+          </li>
+          {% endfor %}
+        </ol>
+      </section>
+
+      <section class="card chart-card">
+        <h2>Artists in this top</h2>
+        <div class="chart-wrap">
+          <canvas id="artistChart" width="400" height="260"></canvas>
+        </div>
+      </section>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  const labels = {{ artist_labels | tojson }};
+  const values = {{ artist_values | tojson }};
+  const root = getComputedStyle(document.documentElement);
+  const accent = root.getPropertyValue('--accent').trim() || '#1ed760';
+  const muted = root.getPropertyValue('--muted').trim() || '#a7a7a7';
+
+  if (labels.length && document.getElementById('artistChart')) {
+    new Chart(document.getElementById('artistChart'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Tracks in top',
+          data: values,
+          backgroundColor: accent + 'cc',
+          borderColor: accent,
+          borderWidth: 1,
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 700, easing: 'easeOutCubic' },
+        plugins: {
+          legend: { display: false },
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            ticks: { stepSize: 1, color: muted, font: { size: 11 } },
+            grid: { color: 'rgba(255,255,255,.05)', drawTicks: false },
+            border: { display: false },
+          },
+          y: {
+            ticks: { color: muted, font: { size: 11 } },
+            grid: { display: false },
+            border: { display: false },
+          },
+        },
+      },
+    });
+  }
+</script>
+{% endif %}
+{% endblock %}
